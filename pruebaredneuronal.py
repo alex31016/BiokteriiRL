@@ -10,74 +10,11 @@ from cell import COLOR_LIST, OUTER_SHAPE_LIST, INNER_SHAPE_LIST, ROT_DIRECTION_L
 
 import random
 
-#alldata = ClassificationDataSet(3,class_labels=["False","True"])
-#
-#alldata.addSample([1,0,0],[0])
-#alldata.addSample([1,0,1],[0])
-#alldata.addSample([1,1,0],[0])
-#alldata.addSample([1,1,1],[1])
-#alldata.addSample([1,0,0],[0])
-#alldata.addSample([1,0,1],[0])
-#alldata.addSample([1,1,1],[1])
-#alldata.addSample([0,0,0],[0])
-#
-#print "allData: "
-#for data in alldata:
-#    print data,
-#print
-#
-#tstdata, trndata = alldata.splitWithProportion(0.25)
-#
-#print "Test Data ", tstdata
-#print "Training Data ", trndata
-#
-##trndata._convertToOneOfMany()
-##tstdata._convertToOneOfMany()
-#
-#print "Number of training patterns: ", len(trndata)
-#print "Input and output dimensions: ", trndata.indim, trndata.outdim
-#print "input,       target, class):"
-#
-#fnn = FeedForwardNetwork()
-#
-#inLayer = LinearLayer(trndata.indim)
-#hiddenLayer = SigmoidLayer(5)
-#outLayer = LinearLayer(trndata.outdim)
-#
-#fnn.addInputModule(inLayer)
-#fnn.addModule(hiddenLayer)
-#fnn.addOutputModule(outLayer)
-#
-#in_to_hidden = FullConnection(inLayer, hiddenLayer)
-#hidden_to_out = FullConnection(hiddenLayer, outLayer)
-#
-#fnn.addConnection(in_to_hidden)
-#fnn.addConnection(hidden_to_out)
-#
-#fnn.sortModules()
-#
-#print "params"
-#print fnn.params
-#
-#print "Activate[1,1,1] = " , fnn.activate([1,1,1])
-#print "Activate[0,0,0] = " , fnn.activate([0,0,0])
-#
-#trainer = BackpropTrainer( fnn, dataset=trndata, momentum=0.1, verbose=True, weightdecay=0.01)
-#
-#trainer.trainUntilConvergence(verbose=True)
-#
-#
-#print "params"
-#print fnn.params
-#
-#print "Activate[1,1,1] = " , fnn.activate([1,1,1])
-#print "Activate[0,0,0] = " , fnn.activate([0,0,0])
-
-#------------------------------------------------------------------------------
+KLASS_ARR= [0,0,0]
 
 cellList=[(Cell(),random.randint(0,2)) for i in xrange(20)]
 
-celldata = ClassificationDataSet(5,class_labels=["Food","Target","Enemy"])
+celldata = ClassificationDataSet(5,target=3,class_labels=["Food","Target","Enemy"])
 
 for cell in cellList:
     outerShape=OUTER_SHAPE_LIST.index(cell[0].outerShape)
@@ -88,7 +25,11 @@ for cell in cellList:
         innerColor=3
     else:
         innerColor=COLOR_LIST.index((cell[0].innerColor,cell[0].innerColorList))
-    celldata.addSample([outerShape,outerColor,outerRotation,innerShape,innerColor],[cell[1]])
+
+    klass = KLASS_ARR
+    klass[cell[1]]=1
+
+    celldata.addSample([outerShape,outerColor,outerRotation,innerShape,innerColor],klass)
 
 print "cellData: "
 for cell in celldata:
@@ -111,7 +52,7 @@ fnn = FeedForwardNetwork()
 
 inLayer = LinearLayer(trndata.indim)
 hiddenLayer = SigmoidLayer(5)
-outLayer = LinearLayer(trndata.outdim)
+outLayer = SigmoidLayer(trndata.outdim)
 
 fnn.addInputModule(inLayer)
 fnn.addModule(hiddenLayer)
@@ -130,7 +71,7 @@ print fnn.params
 
 trainer = BackpropTrainer( fnn, dataset=trndata, momentum=0.1, verbose=True, weightdecay=0.01)
 
-trainer.trainUntilConvergence(verbose=True)
+trainer.trainUntilConvergence(maxEpochs=500,verbose=True)
 
 
 print "params"
