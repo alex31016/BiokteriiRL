@@ -132,6 +132,8 @@ class Lienzo(gtk.DrawingArea):
         for virus in self.virus:
             virus.targetCell = random.choice(self.cells)
             classification = test_network(self.fnn, transform_cell(virus.targetCell))
+            print "Classification:"
+            print classification
             max_class = classification.max()
             class_list = classification.flatten().tolist()
             class_index = class_list.index(max_class)
