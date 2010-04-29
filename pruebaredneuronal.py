@@ -51,18 +51,22 @@ print "input,       target, class):"
 fnn = FeedForwardNetwork()
 
 inLayer = LinearLayer(trndata.indim)
-hiddenLayer = SigmoidLayer(5)
+#hiddenLayer = SigmoidLayer(5)
 outLayer = SigmoidLayer(trndata.outdim)
 
 fnn.addInputModule(inLayer)
-fnn.addModule(hiddenLayer)
+#fnn.addModule(hiddenLayer)
 fnn.addOutputModule(outLayer)
 
-in_to_hidden = FullConnection(inLayer, hiddenLayer)
-hidden_to_out = FullConnection(hiddenLayer, outLayer)
+#in_to_hidden = FullConnection(inLayer, hiddenLayer)
+#hidden_to_out = FullConnection(hiddenLayer, outLayer)
 
-fnn.addConnection(in_to_hidden)
-fnn.addConnection(hidden_to_out)
+in_to_out = FullConnection(inLayer,outLayer)
+
+#fnn.addConnection(in_to_hidden)
+#fnn.addConnection(hidden_to_out)
+
+fnn.addConnection(in_to_out)
 
 fnn.sortModules()
 
