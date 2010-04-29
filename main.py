@@ -1,6 +1,6 @@
 # coding: utf-8
 
-from id3.id3 import ID3Tree
+
 import gtk
 #import cairo
 import gobject
@@ -23,6 +23,10 @@ from constants import CHARACTERISTICS_DICT
 from constants import TRAINING_ZONE_LIMIT
 virList =[]
 cellList =[]
+
+from neuralNetwork import create_trained_network
+from neuralNetwork import test_network
+from neuralNetwork import transform_cell
 
 #Lienzo es donde se pintara todo
 class Lienzo(gtk.DrawingArea):
@@ -63,7 +67,7 @@ class Lienzo(gtk.DrawingArea):
 
         self.trainingZoneLimit=WINDOW_SIZE-100
 
-        self.tree = None
+        self.fnn = None
 
         self.init_simulation()
 
@@ -109,37 +113,39 @@ class Lienzo(gtk.DrawingArea):
                random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
                 ) for i in xrange(TOTAL_VIRUS)]
 
-
+            print "Training set: "
             print self.trainingSet
-            #ID3Tree Generation
-            self.generate_id3()
+            #Neural Network Generation and Training
+            self.generate_n_n()
 
         else:
             pass
 
-    def generate_id3(self):
-        self.tree = ID3Tree(
-                            self.classificationList,
-                            CHARACTERISTICS_DICT.keys(),
-                            self.trainingSet
-                            )                            
-        self.tree.calculate()
-        print self.tree.entropyDict
-        self.tree.build_tree()        
-        self.tree.print_tree()
-
+    def generate_n_n(self):
+        print"@ Generate n_n"
+        print "Training set en generate: "
+        print self.trainingSet
+        self.fnn = create_trained_network(self.trainingSet)
+        print self.fnn
+        
     def classify_cell(self, widget):
         for virus in self.virus:
             virus.targetCell = random.choice(self.cells)
-            classification = self.tree.classify(virus.targetCell)
-            if classification==self.classificationList[0]:
+            classification = test_network(self.fnn, transform_cell(virus.targetCell))
+            max_class = classification.max()
+            class_list = classification.flatten().tolist()
+            class_index = class_list.index(max_class)
+
+            virus.targetCell.name = self.classificationList[class_index]
+            if class_index==0:
                 virus.attack()
-            elif classification==self.classificationList[1]:
+            elif class_index==1:
                 virus.defend()
-            elif classification==self.classificationList[2]:
+            elif class_index==2:
                 virus.eat()
-            elif classification=="Unknown":
-                virus.analyze()
+            else:
+                print "Unexpected index"
+
 
     def reset(self,extra=0):
         self.currentState="Training"
