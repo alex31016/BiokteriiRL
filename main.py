@@ -50,7 +50,7 @@ class Lienzo(gtk.DrawingArea):
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|gtk.gdk.BUTTON_RELEASE_MASK|gtk.gdk.POINTER_MOTION_MASK)
         self.hud=Hud()
         self.minTimeToNextCell=50
-        self.maxTimeToNextCell=100
+        self.maxTimeToNextCell=200
         self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
         #cells
