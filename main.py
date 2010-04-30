@@ -49,8 +49,8 @@ class Lienzo(gtk.DrawingArea):
         self.connect("motion_notify_event",self.actualizar_dragged)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|gtk.gdk.BUTTON_RELEASE_MASK|gtk.gdk.POINTER_MOTION_MASK)
         self.hud=Hud()
-        self.minTimeToNextCell=200
-        self.maxTimeToNextCell=400
+        self.minTimeToNextCell=50
+        self.maxTimeToNextCell=100
         self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
         #cells
@@ -197,11 +197,13 @@ class Lienzo(gtk.DrawingArea):
                         
 
                 if virus.is_colliding_with(virus.targetCell):
-                    if virus.status=="Attacking":
-                        if not virus.targetCell.status:
+                    if not virus.targetCell.status:
+                        if virus.status=="Attacking":
                             virus.targetCell.status="Dying"
-                        if virus.targetCell.status=="Dead":
-                            virus.targetCell=None
+                        if virus.status=="Eating":
+                            virus.targetCell.status="BeingEaten"
+                    if virus.targetCell.status=="Dead":
+                        virus.targetCell=None
 
             for (cell,type) in self.trainingSet:
                 for i in xrange(len(self.classificationList)):

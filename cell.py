@@ -62,7 +62,7 @@ class Cell(Sprite):
         self.outerShape=random.choice(OUTER_SHAPE_LIST)
         self.outerColor,self.outerColorList=random.choice(COLOR_LIST)
         self.outerRotation,self.outerRotationVal=random.choice(ROT_DIRECTION_LIST)
-
+        
         self.innerShape=random.choice(INNER_SHAPE_LIST)
         if self.innerShape=="None":
             self.innerColor,self.innerColorList=("Black",[0,0,0])
@@ -131,7 +131,25 @@ class Cell(Sprite):
                 self.posX+=self.transVelX
                 self.posY+=self.transVelY
 
-            if self.status=="Dying":
+            if self.status=="BeingEaten":
+                self.deltaRot=0
+                self.velX=0
+                self.velY=0
+                if self.hp>0:
+                    self.hp-=1
+                else:
+                    self.hp=0
+                    self.status="Eaten"
+
+                if len(self.dyingParticles)<MAX_DYING_PARTICLES:
+                    self.dyingParticles.append(DyingParticle(random.randint(int(self.posX),int(self.posX+self.width)),random.randint(int(self.posY),int(self.posY+self.height)),
+                        random.random()*(pow(-1,random.randint(1,2)))*0.5,random.random()*(pow(-1,random.randint(1,2)))*0.5,0.7,100))
+
+            elif self.status=="Eaten":
+                #do something
+                self.status="Dead"
+
+            elif self.status=="Dying":
                 self.deltaRot=0
                 self.velX=0
                 self.velY=0
@@ -141,9 +159,9 @@ class Cell(Sprite):
                     self.hp=0
                     self.status="LastBreath"
 
-                if len(self.dyingParticles)<MAX_DYING_PARTICLES:
+                if len(self.dyingParticles)<MAX_DYING_PARTICLES*2:
                     self.dyingParticles.append(DyingParticle(random.randint(int(self.posX),int(self.posX+self.width)),random.randint(int(self.posY),int(self.posY+self.height)),
-                        random.random()*(pow(-1,random.randint(1,2))),random.random()*(pow(-1,random.randint(1,2)))))
+                        random.random()*(pow(-1,random.randint(1,2))),random.random()*(pow(-1,random.randint(1,2))),0.14,150))
 
             elif self.status=="LastBreath":
                 for particle in self.dyingParticles:

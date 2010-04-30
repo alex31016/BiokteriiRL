@@ -13,7 +13,6 @@ DEFAULT_HEIGHT=50
 
 MAX_PUSH_PARTICLES=50
 
-STATUS=["NoTarget","Analyzing","Attacking","Defending"]
 
 class Virus(Sprite):
     def __init__(self, posX=0, posY=0,
