@@ -21,8 +21,9 @@ STATUS_LIST=["Dying","Dead","Repelled"]
 
 MAX_DYING_PARTICLES=40
 
+
 class Cell(Sprite):
-    def __init__(self, posX=0, posY=0, velX=0, velY=0, type="TrainCell"):
+    def __init__(self, posX=0, posY=0, velX=0, velY=0, type="TrainCell", caracteristicas="00000"):
         Sprite.__init__(self,posX,posY)
         self.width=DEFAULT_WIDTH
         self.height=DEFAULT_HEIGHT
@@ -50,6 +51,8 @@ class Cell(Sprite):
         self.rot=0
         self.status=None
 
+        self.characteristics = caracteristicas
+
 
         #movement
         self.degreeRot=0
@@ -59,15 +62,23 @@ class Cell(Sprite):
         self.dyingParticles=[]
 
         #attributes
-        self.outerShape=random.choice(OUTER_SHAPE_LIST)
-        self.outerColor,self.outerColorList=random.choice(COLOR_LIST)
-        self.outerRotation,self.outerRotationVal=random.choice(ROT_DIRECTION_LIST)
+#        self.outerShape=random.choice(OUTER_SHAPE_LIST)
+        self.outerShape = OUTER_SHAPE_LIST[int(self.characteristics[0])]
+#        self.outerColor,self.outerColorList=random.choice(COLOR_LIST)
+        self.outerColor, self.outerColorList = COLOR_LIST[int(self.characteristics[1])]
+#        self.outerRotation,self.outerRotationVal=random.choice(ROT_DIRECTION_LIST)
+        self.outerRotation,self.outerRotationVal=ROT_DIRECTION_LIST[int(self.characteristics[2])]
         
-        self.innerShape=random.choice(INNER_SHAPE_LIST)
+#        self.innerShape=random.choice(INNER_SHAPE_LIST)
+        self.innerShape=INNER_SHAPE_LIST[int(self.characteristics[3])]
         if self.innerShape=="None":
             self.innerColor,self.innerColorList=("Black",[0,0,0])
         else:
-            self.innerColor,self.innerColorList=random.choice(COLOR_LIST)
+#            self.innerColor,self.innerColorList=random.choice(COLOR_LIST)
+            self.innerColor,self.innerColorList=COLOR_LIST[int(self.characteristics[4])]
+
+        #aqui va la forma en que queremos que se creen las celulas
+
 
     def get_characteristic(self,characName):
         if characName == "outerShape":

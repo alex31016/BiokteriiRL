@@ -1,11 +1,11 @@
 import gtk
 
 WINDOW_SIZE=700
-TRAINING_ZONE_LIMIT=WINDOW_SIZE-100
+TRAINING_ZONE_LIMIT=WINDOW_SIZE-0
 
 TOTAL_VIRUS = 1
-MAX_CELLS = 5  #Max number of cells on screen
-TRAIN_CELLS=15
+MAX_CELLS = 0  #Max number of cells on screen
+TRAIN_CELLS=0
 
 
 #imagenes

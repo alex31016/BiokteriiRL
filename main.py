@@ -24,10 +24,6 @@ from constants import TRAINING_ZONE_LIMIT
 virList =[]
 cellList =[]
 
-from neuralNetwork import create_trained_network
-from neuralNetwork import test_network
-from neuralNetwork import transform_cell
-
 #Lienzo es donde se pintara todo
 class Lienzo(gtk.DrawingArea):
     def __init__(self, ventana):
@@ -66,10 +62,22 @@ class Lienzo(gtk.DrawingArea):
         self.trainingSet=[]
 
         self.trainingZoneLimit=WINDOW_SIZE-100
-
-        self.fnn = None
+        self.read_file()
+        self.numCells
+        self.currentCell = 0
+        self.apareciendo
 
         self.init_simulation()
+
+    def read_file(self):
+        file = open("list.txt",'r')
+        self.apareciendo = []
+        for linea in file.readlines():
+            self.apareciendo.append(linea)
+        self.numCells = len(self.apareciendo)
+        print self.numCells
+        return self.apareciendo
+
 
     def actualizar_dragged(self,widget,event):
         if self.draggingObject:
@@ -93,15 +101,6 @@ class Lienzo(gtk.DrawingArea):
                 cell.height=20
                 cell.velX=random.randint(1,5)/5.0
                 cell.velY=random.random()
-                for i in xrange(len(self.divisionPoints)):
-                    if cell.posX+cell.width/2<self.divisionPoints[i]:
-                        if i==0:
-                            cell.posX=random.randint(0,self.divisionPoints[i]-cell.width)
-                        else:
-                            cell.posX=random.randint(self.divisionPoints[i-1],self.divisionPoints[i]-cell.width)
-                        cell.posY=random.randint(WINDOW_SIZE-100+cell.height, WINDOW_SIZE-cell.height)
-                        self.trainingSet.append((cell,self.classificationList[i]))
-                        break
 
             self.cells =[Cell(
                random.randint(0,WINDOW_SIZE),
@@ -113,41 +112,13 @@ class Lienzo(gtk.DrawingArea):
                random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
                 ) for i in xrange(TOTAL_VIRUS)]
 
-            print "Training set: "
-            print self.trainingSet
-            #Neural Network Generation and Training
-            self.generate_n_n()
-
         else:
             pass
 
-    def generate_n_n(self):
-        print"@ Generate n_n"
-        print "Training set en generate: "
-        print self.trainingSet
-        self.fnn = create_trained_network(self.trainingSet)
-        print self.fnn
-        
+    #esto ya no se deberia llamar classify_cell
     def classify_cell(self, widget):
         for virus in self.virus:
-            virus.targetCell = random.choice(self.cells)
-            classification = test_network(self.fnn, transform_cell(virus.targetCell))
-            print "Classification:"
-            print classification
-            
-            max_class = classification.max()
-            class_list = classification.flatten().tolist()
-            class_index = class_list.index(max_class)
-
-            virus.targetCell.name = self.classificationList[class_index]
-            if class_index==0:
-                virus.attack()
-            elif class_index==1:
-                virus.defend()
-            elif class_index==2:
-                virus.eat()
-            else:
-                print "Unexpected index"
+            virus.analyze()
 
 
     def reset(self,extra=0):
@@ -178,11 +149,19 @@ class Lienzo(gtk.DrawingArea):
             self.ticksToNextCell-=1
             if self.ticksToNextCell<=0:
                 self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
+
+                if self.currentCell==self.numCells:
+                    self.currentCell = 0
+
+                print self.apareciendo
+#                print self.apareciendo[self.currentCell]
+                print self.currentCell
                 newCell=Cell(WINDOW_SIZE,
-                    random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT))
+                    random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
                 newCell.velX=-random.random()*2
                 newCell.type="NormalCell"
                 self.cells.append(newCell)
+                self.currentCell+=1
 
             #update virus
             for virus in self.virus:
@@ -236,58 +215,11 @@ class Lienzo(gtk.DrawingArea):
         cr.restore()
         #pintar a los agentes
         if self.currentState=="Training":
-            for point in self.divisionPoints:
-                cr.set_source_rgb(1,1,1)
-                cr.move_to(point, 15)
-                cr.line_to(point,WINDOW_SIZE-15)
-                cr.set_line_width(0.6)
-                cr.stroke()
-            for i in xrange(len(self.classificationList)):
-                text=str(self.classificationList[i])
-                if i==0:
-                    posXText=(self.divisionPoints[i])/2-(len(text)/2)*5
-                else:
-                    posXText=(self.divisionPoints[i-1]+self.divisionPoints[i])/2-(len(text)/2)*5
-                posYText=15
-                cr.save()
-                cr.move_to(posXText,posYText)
-                cr.set_source_rgba(1,1,1,0.7)
-                cr.show_text(text)
-                cr.restore()
-                
-            display_simulation(cr,[],self.cells)
-            self.hud.display_cells(cr,self.cells)
-            self.hud.display_viruses(cr, [])
-
+            pass
+        
         if self.currentState=="Running":
             cr.set_source_rgb(1,1,1)
             cr.move_to(15, WINDOW_SIZE-100)
-            cr.line_to(WINDOW_SIZE-15,WINDOW_SIZE-100)
-            cr.set_line_width(0.6)
-            cr.stroke()
-            for point in self.divisionPoints:
-                cr.set_source_rgb(1,1,1)
-                cr.move_to(point, WINDOW_SIZE-85)
-                cr.line_to(point,WINDOW_SIZE-15)
-                cr.set_line_width(0.6)
-                cr.stroke()
-            
-            for i in xrange(len(self.classificationList)):
-                text=str(self.classificationList[i])
-                if i==0:
-                    posXText=(self.divisionPoints[i])/2-(len(text)/2)*5
-                else:
-                    posXText=(self.divisionPoints[i-1]+self.divisionPoints[i])/2-(len(text)/2)*5
-                posYText=TRAINING_ZONE_LIMIT+15
-                cr.save()
-                cr.move_to(posXText,posYText)
-                cr.set_source_rgba(1,1,1,0.7)
-                cr.show_text(text)
-                cr.restore()
-
-            for (cell,type) in self.trainingSet:
-                cell.paint(cr)
-
             display_simulation(cr,self.virus,self.cells)
             self.hud.display_cells(cr,self.cells)
             self.hud.display_viruses(cr, self.virus)
@@ -369,13 +301,9 @@ class Main(gtk.Window):
         filem = gtk.MenuItem("Actions")
         filem.set_submenu(filemenu)
 
-        annealMenu = gtk.MenuItem("Reset & Train")
-        annealMenu.connect("activate", self.lienzo.reset)
-        filemenu.append(annealMenu)
-
-        annealMenu = gtk.MenuItem("Start Simulation")
-        annealMenu.connect("activate", self.lienzo.run_simulation)
-        filemenu.append(annealMenu)
+#        annealMenu = gtk.MenuItem("Start Simulation")
+#        annealMenu.connect("activate", self.lienzo.run_simulation)
+#        filemenu.append(annealMenu)
 
         annealMenu = gtk.MenuItem("Test random cell")
         annealMenu.connect("activate", self.lienzo.classify_cell)
@@ -398,6 +326,7 @@ class Main(gtk.Window):
         self.add(self.mainBox)
         self.connect("destroy", gtk.main_quit)
         self.show_all()
+        self.lienzo.run_simulation()
 
     def pausar_lienzo(self, widget):
         self.lienzo.pausar()
