@@ -60,7 +60,7 @@ class Lienzo(gtk.DrawingArea):
         self.draggingObject = None
         self.objetoSeleccionado=[]
 
-        self.currentState="Training"
+        self.currentState="Running"
         self.classificationList=["Target","Enemy","Food"]
         self.divisionPoints=[]
         self.trainingSet=[]
@@ -116,7 +116,7 @@ class Lienzo(gtk.DrawingArea):
             print "Training set: "
             print self.trainingSet
             #Neural Network Generation and Training
-            self.generate_n_n()
+            #self.generate_n_n()
 
         else:
             pass
@@ -190,9 +190,7 @@ class Lienzo(gtk.DrawingArea):
                     virus.update(self.currentState)
                     if len(self.cells)>0 and virus.targetCell==None:
                         virus.targetCell=self.cells[len(self.cells)-1]
-                        #This is a temprorary decision function
-                        #Actual classification should do this
-                        self.classify_cell(widget=None)
+                        #aqui clasifica###################################################################
                         
                         
 
