@@ -23,6 +23,10 @@ from constants import CHARACTERISTICS_DICT
 from constants import TRAINING_ZONE_LIMIT
 virList =[]
 cellList =[]
+from QLearning.qlearn import QAgent
+from QLearning.qlearn import QNode
+from QLearning.qlearn import QAction
+from QLearning.qlearn import Table
 
 #Lienzo es donde se pintara todo
 class Lienzo(gtk.DrawingArea):
@@ -62,10 +66,12 @@ class Lienzo(gtk.DrawingArea):
         self.trainingSet=[]
 
         self.trainingZoneLimit=WINDOW_SIZE-100
-        self.read_file()
-        self.numCells
         self.currentCell = 0
-        self.apareciendo
+        self.apareciendo = []
+        self.numCells = 0
+        self.read_file()
+        
+        
 
         self.init_simulation()
 
@@ -149,9 +155,7 @@ class Lienzo(gtk.DrawingArea):
             if self.ticksToNextCell<=0:
                 self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
-                if self.currentCell==self.numCells:
-                    self.currentCell = 0
-
+                print "NumCells", self.numCells
                 print self.apareciendo
 #                print self.apareciendo[self.currentCell]
                 print self.currentCell
@@ -160,7 +164,7 @@ class Lienzo(gtk.DrawingArea):
                 newCell.velX=-random.random()*2
                 newCell.type="NormalCell"
                 self.cells.append(newCell)
-                self.currentCell+=1
+                self.currentCell=(self.currentCell+1)%self.numCells
 
             #update virus
             for virus in self.virus:
@@ -168,6 +172,7 @@ class Lienzo(gtk.DrawingArea):
                     virus.update(self.currentState)
                     if len(self.cells)>0 and virus.targetCell==None:
                         virus.targetCell=self.cells[len(self.cells)-1]
+                        #Hacer accion random
                         #aqui clasifica###################################################################
                         
                         
