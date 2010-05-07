@@ -1,3 +1,5 @@
+QNodeDict={}
+
 class QNode():
     def __init__(self, state, action_dict = None):
         self.state = state #State string, like AT for Alto,True
@@ -16,6 +18,28 @@ class Table():
 
     def __getitem__(self,key):
         return self.actions[key]
+
+    def read_from_file(self, fileName):
+        actionDict = {}
+        file = open(filename, "r")
+        for line in file:
+            info=line.split(",")
+            SourceName=info[0][0]+info[1][0]
+            if QNodeDict.has_key(SourceName):
+                QNodeSource=QNodeDict[SourceName]
+            else:
+                QNodeDict.update({SourceName:Node(SourceName)})
+                QNodeSource=Node(SourceName)
+            DestName=info[2][0]+info[3][0]
+            if QNodeDict.has_key(DestName):
+                QNodeSource=QNodeDict[DestName]
+            else:
+                QNodeDict.update({DestName:Node(DestName)})
+                QNodeSource=Node(DestName)
+            reinforcement=int(line[5])
+            action = QAction(ActionName,QNodeSource, QNodeDestination, reinforcement)
+            actionDict.update({SourceName+DestName:action})
+        return None
 
 import random
 class QAgent():
