@@ -4,7 +4,8 @@ class QNode():
         self.action_dict = action_dict
 
 class QAction():
-    def __init__(self,source_node, destination_node,  reinforcement = 0):
+    def __init__(self,action_name, source_node, destination_node,  reinforcement = 0):
+        self.name = action_name
         self.source = source_node
         self.destination= destination_node #QNodeList
         self.reinforcement = reinforcement
@@ -42,6 +43,8 @@ class QAgent():
     def _select_state(self):
         if self.selection_policy=="random":
             self.current_node = random.choice(self.current_node.action_dict.values())
+        if self.selection_policy == "bestchoice":
+            self.current_node = self._get_max_action().destination
 
     def _update_q_table(self):
         node_state = self.current_node.state
