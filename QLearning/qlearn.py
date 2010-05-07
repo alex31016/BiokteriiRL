@@ -32,6 +32,8 @@ class QAgent():
         if self.selection_policy == "bestchoice":
             self.current_node = self._get_max_action().destination
 
+        
+
     def _update_q_table(self):
         node_state = self.current_node.state
 
@@ -41,7 +43,7 @@ class QAgent():
 
     def _get_max_action(self):
         max = -1000
-        max_action = None
+        max_action = None  
         q_action_dict = self.q_table[self.current_node.state]
         for action_key in q_action_dict:
             action = q_action_dict[action_key]
