@@ -16,6 +16,20 @@ class Table():
     def __getitem__(self,key):
         return self.actions[key]
 
+    def read_from_file(self, fileName):
+        actionDict = {}
+        file = open(filename, "r")
+        for line in file:
+            information=line.split(",")
+            QNodeSource=
+            SourceName=line[0][0]+line[1][0]
+            QNodeDestination=
+            DestName=line[][0]+
+            reinforcement=
+            action = QAction(ActionName,QNodeSource, QNodeDestination, reinforcement)
+            actionDict.update({SourceName+DestName:action})
+        return None
+
 import random
 class QAgent():
     def __init__(self, r_table, q_table, start_node, learning_rate=0.5):
