@@ -116,16 +116,22 @@ class Cell(Sprite):
             if self.type=="TrainCell":
                 self.posX+=self.velX
                 self.posY+=self.velY*math.cos(self.degreeRot)
+
                 if self.posX<=limits[0] or self.posX>=limits[1]:
                     self.velX*=-1
                 if self.posY<=limits[2] or self.posY>=limits[3]:
                     self.velY*=-1
             else:
+                
                 if self.posX-self.width<=0:
+                    if self.status == "defended":
+                        self.status="Dead"
                     self.velX = self.baseVelX
-                    
+                
                 if self.posX+self.width>=WINDOW_SIZE:
-                    self.velX = -1*(self.baseVelX)                    
+                    if self.status == "defended":
+                        self.status="Dead"
+                    self.velX = -1*(self.baseVelX)
 
                 if abs(self.transDeltaRot-self.deltaRot)<=self.deltaDeltaRot*2:
                     self.transDeltaRot=self.deltaRot

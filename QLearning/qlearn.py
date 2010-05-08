@@ -166,11 +166,17 @@ class QAgent():
                 return action.name[0]
             else:
                 print "estado final A"
-                return "X"
-                #return action.name[0]
+                self.restart()
+                return action.name[0]
+                
         else:
-            print "estado final"
-            return "X"
+            self.restart()
+            #return "X"
+            return "A"
+
+    def restart(self):
+        self.current_state="A"
+        print "Restarted... State= A"
 
 
     def _normalize_color(self, color_str):

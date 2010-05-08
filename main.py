@@ -48,8 +48,8 @@ class Lienzo(gtk.DrawingArea):
         self.connect("motion_notify_event",self.actualizar_dragged)
         self.set_events(gtk.gdk.BUTTON_PRESS_MASK|gtk.gdk.BUTTON_RELEASE_MASK|gtk.gdk.POINTER_MOTION_MASK)
         self.hud=Hud()
-        self.minTimeToNextCell=50
-        self.maxTimeToNextCell=200
+        self.minTimeToNextCell=100
+        self.maxTimeToNextCell=300
         self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
         #cells
@@ -108,11 +108,11 @@ class Lienzo(gtk.DrawingArea):
                 cell.velX=random.randint(1,5)/5.0
                 cell.velY=random.random()
 
-            self.cells =[Cell(
-               random.randint(0,WINDOW_SIZE),
-               random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
-               -(random.random()+1)*2,0, "NormalCell"
-                ) for i in xrange(MAX_CELLS)]
+#            self.cells =[Cell(
+#               random.randint(0,WINDOW_SIZE),
+#               random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
+#               -(random.random()+1)*2,0, "NormalCell"
+#                ) for i in xrange(MAX_CELLS)]
             self.virus =[Virus(
                random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
                random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
@@ -143,7 +143,7 @@ class Lienzo(gtk.DrawingArea):
         for cell in self.cells:
             cell.update(self.currentState)
             if cell.type=="NormalCell":                
-                if (cell.status=="Dead" and len(cell.dyingParticles)<=0):
+                if(cell.status=="Dead" and len(cell.dyingParticles)<=0):
                     cellsToPop.append(cell)
         for cell in cellsToPop:
             self.cells.pop(indexOf(self.cells,cell))
@@ -151,11 +151,9 @@ class Lienzo(gtk.DrawingArea):
                 self.virus[0].targetCell=None
 
         if self.currentState=="Running":
-            self.ticksToNextCell-=1
-            if self.ticksToNextCell<=0:
-
-                self.ticksToNextCell = 0
-                if self.currentCell < self.numCells:
+            
+            if self.ticksToNextCell<=0:                
+                if len(self.cells)< MAX_CELLS:#self.currentCell < self.numCells:
                     
                     self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
@@ -163,33 +161,44 @@ class Lienzo(gtk.DrawingArea):
                     #print self.apareciendo
     #                print self.apareciendo[self.currentCell]
                     print self.currentCell
+                    
                     newCell=Cell(WINDOW_SIZE - CELL_WIDTH*2,
                         random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
                     newCell.velX=-random.random()*2
                     newCell.type="NormalCell"
                     self.cells.append(newCell)
-                    self.currentCell=(self.currentCell+1)#%self.numCells
+                    self.currentCell=(self.currentCell+1)%self.numCells
+            else:
+                self.ticksToNextCell-=1
 
             #update virus
             for virus in self.virus:
                 if not virus.isDead:
                     virus.update(self.currentState)
                     if len(self.cells)>0 and virus.targetCell==None:
-                        virus.targetCell=self.cells[len(self.cells)-1]
-                        current_state = self.qagent.update(virus.targetCell)
-                        print "Current State", current_state
-                        if current_state == "A":
-                            virus.status="Attacking"
-                        if current_state =="C":
-                            virus.status="Eating"
-                        if current_state =="D":
-                            virus.status="Defending"
-                        if current_state =="X":
-                            virus.isDead = True
+                        #virus.targetCell=self.cells[len(self.cells)-1]
+                        for i in xrange(len(self.cells)):
+                            idx = random.randint(0,len(self.cells)-1)
+                            if self.cells[idx].hp > 0:
+                                virus.targetCell = self.cells[idx]
+                                break
+                        if virus.targetCell:
+                            current_state = self.qagent.update(virus.targetCell)
+                            print "Current State", current_state
+                            if current_state == "A":
+                                virus.status="Attacking"
+                            if current_state =="C":
+                                virus.status="Eating"
+                            if current_state =="D":
+                                virus.status="Defending"
+                                virus.targetCell.status = "defended"
+                            if current_state =="X":
+                                virus.isDead = True
 
-                        #virus.status="Defending"
-                        #Hacer accion random
-                        #aqui clasifica###################################################################
+                            #virus.status="Defending"
+                            #virus.targetCell.status = "defended"
+                            #Hacer accion random
+                            #aqui clasifica###################################################################
                         
                         
                 
