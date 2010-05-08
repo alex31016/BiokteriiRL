@@ -168,6 +168,8 @@ class Virus(Sprite):
                     self.deltaRot=0.2
                     self.limitMax=300
                     self.limitMin=200
+                    self.targetCell.posX += self.targetCell.velX
+
                 if self.status=="Eating":
                     self.deltaRot=-0.2
                     self.limitMax=30
@@ -191,6 +193,7 @@ class Virus(Sprite):
                 self.posX=WINDOW_SIZE-self.width
 
     def paint(self,window):
+        window.set_line_width(1)
         for particle in self.pushParticles:
             particle.paint(window)
 

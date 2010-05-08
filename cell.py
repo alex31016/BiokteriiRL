@@ -31,10 +31,12 @@ class Cell(Sprite):
         self.hp=self.maxHp
         self.isDead=False
 
-        self.baseVelX=0
-        self.baseVelY=0
+        
         self.velX=velX
         self.velY=velY
+
+        self.baseVelX=velX
+        self.baseVelY=0
 
         self.deltaTransX=0.05
         self.deltaTransY=0.05
@@ -107,9 +109,10 @@ class Cell(Sprite):
         if self.hp<=0:
             self.isDead=True
         else:
-            self.isDead=False;
+            self.isDead=False
 
         if state=="Running":
+            self.baseVelX = abs(self.velX)           
             if self.type=="TrainCell":
                 self.posX+=self.velX
                 self.posY+=self.velY*math.cos(self.degreeRot)
@@ -118,6 +121,12 @@ class Cell(Sprite):
                 if self.posY<=limits[2] or self.posY>=limits[3]:
                     self.velY*=-1
             else:
+                if self.posX-self.width<=0:
+                    self.velX = self.baseVelX
+                    
+                if self.posX+self.width>=WINDOW_SIZE:
+                    self.velX = -1*(self.baseVelX)                    
+
                 if abs(self.transDeltaRot-self.deltaRot)<=self.deltaDeltaRot*2:
                     self.transDeltaRot=self.deltaRot
                 elif self.transDeltaRot < self.deltaRot:

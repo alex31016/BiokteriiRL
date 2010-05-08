@@ -24,7 +24,6 @@ from constants import TRAINING_ZONE_LIMIT
 virList =[]
 cellList =[]
 from QLearning.qlearn import QAgent
-from QLearning.qlearn import QNode
 from QLearning.qlearn import QAction
 from QLearning.qlearn import Table
 
@@ -70,8 +69,9 @@ class Lienzo(gtk.DrawingArea):
         self.apareciendo = []
         self.numCells = 0
         self.read_file()
-        
-        
+
+        self.r_table = Table()
+        self.qagent = QAgent(self.r_table,'A')
 
         self.init_simulation()
 
@@ -111,7 +111,7 @@ class Lienzo(gtk.DrawingArea):
             self.cells =[Cell(
                random.randint(0,WINDOW_SIZE),
                random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
-               -random.random()*2,0, "NormalCell"
+               -(random.random()+1)*2,0, "NormalCell"
                 ) for i in xrange(MAX_CELLS)]
             self.virus =[Virus(
                random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
@@ -142,8 +142,8 @@ class Lienzo(gtk.DrawingArea):
         cellsToPop=[]
         for cell in self.cells:
             cell.update(self.currentState)
-            if cell.type=="NormalCell":
-                if cell.posX+cell.width<0 or (cell.status=="Dead" and len(cell.dyingParticles)<=0):
+            if cell.type=="NormalCell":                
+                if (cell.status=="Dead" and len(cell.dyingParticles)<=0):
                     cellsToPop.append(cell)
         for cell in cellsToPop:
             self.cells.pop(indexOf(self.cells,cell))
@@ -153,18 +153,22 @@ class Lienzo(gtk.DrawingArea):
         if self.currentState=="Running":
             self.ticksToNextCell-=1
             if self.ticksToNextCell<=0:
-                self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
 
-                print "NumCells", self.numCells
-                print self.apareciendo
-#                print self.apareciendo[self.currentCell]
-                print self.currentCell
-                newCell=Cell(WINDOW_SIZE,
-                    random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
-                newCell.velX=-random.random()*2
-                newCell.type="NormalCell"
-                self.cells.append(newCell)
-                self.currentCell=(self.currentCell+1)%self.numCells
+                self.ticksToNextCell = 0
+                if self.currentCell < self.numCells:
+                    
+                    self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
+
+                    #print "NumCells", self.numCells
+                    #print self.apareciendo
+    #                print self.apareciendo[self.currentCell]
+                    print self.currentCell
+                    newCell=Cell(WINDOW_SIZE - CELL_WIDTH*2,
+                        random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
+                    newCell.velX=-random.random()*2
+                    newCell.type="NormalCell"
+                    self.cells.append(newCell)
+                    self.currentCell=(self.currentCell+1)#%self.numCells
 
             #update virus
             for virus in self.virus:
@@ -172,10 +176,23 @@ class Lienzo(gtk.DrawingArea):
                     virus.update(self.currentState)
                     if len(self.cells)>0 and virus.targetCell==None:
                         virus.targetCell=self.cells[len(self.cells)-1]
+                        current_state = self.qagent.update(virus.targetCell)
+                        print "Current State", current_state
+                        if current_state == "A":
+                            virus.status="Attacking"
+                        if current_state =="C":
+                            virus.status="Eating"
+                        if current_state =="D":
+                            virus.status="Defending"
+                        if current_state =="X":
+                            virus.isDead = True
+
+                        #virus.status="Defending"
                         #Hacer accion random
                         #aqui clasifica###################################################################
                         
                         
+                
 
                 if virus.is_colliding_with(virus.targetCell):
                     if not virus.targetCell.status:
@@ -235,7 +252,7 @@ class Lienzo(gtk.DrawingArea):
 
             cr.stroke()
 
-        #coso
+        #coso <- ¬¬
         if self.currentState == "Running":
             if self.virus[0].status == "Defending":
                 cr.set_line_width(2)
