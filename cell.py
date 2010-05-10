@@ -122,13 +122,16 @@ class Cell(Sprite):
                 if self.posY<=limits[2] or self.posY>=limits[3]:
                     self.velY*=-1
             else:
-                
+
+                if self.status=="defended":
+                    self.velX*=1.01;
+
                 if self.posX-self.width<=0:
                     if self.status == "defended":
                         self.status="Dead"
                     self.velX = self.baseVelX
                 
-                if self.posX+self.width>=WINDOW_SIZE:
+                if self.posX+self.width*2>=WINDOW_SIZE:
                     if self.status == "defended":
                         self.status="Dead"
                     self.velX = -1*(self.baseVelX)

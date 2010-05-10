@@ -51,20 +51,21 @@ class Lienzo(gtk.DrawingArea):
         self.minTimeToNextCell=100
         self.maxTimeToNextCell=300
         self.ticksToNextCell=random.randint(self.minTimeToNextCell,self.maxTimeToNextCell)
+        self.trainingZoneLimit=WINDOW_SIZE-100
 
         #cells
         self.virus=[]
         self.cells=[]
-        
+        self.trainingSet=[]
+
         self.draggingObject = None
         self.objetoSeleccionado=[]
 
         self.currentState="Running"
         self.classificationList=["Target","Enemy","Food"]
         self.divisionPoints=[]
-        self.trainingSet=[]
 
-        self.trainingZoneLimit=WINDOW_SIZE-100
+        
         self.currentCell = 0
         self.apareciendo = []
         self.numCells = 0
@@ -74,16 +75,48 @@ class Lienzo(gtk.DrawingArea):
         self.qagent = QAgent(self.r_table,'A')
 
         self.init_simulation()
+        self.init_training_set()
 
     def read_file(self):
         file = open("list.txt",'r')
         self.apareciendo = []
         for linea in file.readlines():
             self.apareciendo.append(linea)
+        file.close()
         self.numCells = len(self.apareciendo)
         print self.numCells
         return self.apareciendo
 
+
+    def init_training_set(self):
+        file = open("list.txt",'r')
+        for linea in file.readlines():
+            newCell=Cell(0,0,0,0,"TrainCell", linea)
+            newCell.width=20
+            newCell.height=20
+            newCell.velX=random.randint(1,5)/5.0
+            newCell.velY=random.random()
+            type=None
+
+            if linea[1]=="0":
+                type="Target"
+            elif linea[1]=="1":
+                type="Enemy"
+            elif linea[1]=="2":
+                type="Food"
+
+            if type=="Target":
+                newCell.posX=random.randint(0,WINDOW_SIZE/3-newCell.width)
+            elif type=="Enemy":
+                newCell.posX=random.randint(WINDOW_SIZE/3,(WINDOW_SIZE/3)*2-newCell.width)
+            elif type=="Food":
+                newCell.posX=random.randint((WINDOW_SIZE/3)*2,WINDOW_SIZE-newCell.width)
+            newCell.posY=random.randint(self.trainingZoneLimit,WINDOW_SIZE-newCell.height)
+
+            self.trainingSet.append((newCell,type))
+            
+        file.close()
+        
 
     def actualizar_dragged(self,widget,event):
         if self.draggingObject:
@@ -115,7 +148,7 @@ class Lienzo(gtk.DrawingArea):
 #                ) for i in xrange(MAX_CELLS)]
             self.virus =[Virus(
                random.randint(0,WINDOW_SIZE-VIRUS_WIDTH),
-               random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT),
+               random.randint(0,self.trainingZoneLimit-CELL_HEIGHT),
                 ) for i in xrange(TOTAL_VIRUS)]
         else:
             pass
@@ -128,12 +161,11 @@ class Lienzo(gtk.DrawingArea):
 
     def reset(self,extra=0):
         self.currentState="Training"
-        self.trainingSet=[]
         for i in xrange(len(self.classificationList)):
             self.divisionPoints.append((WINDOW_SIZE/len(self.classificationList))*(i+1))
         self.cells =[Cell(
-           random.randint(0,WINDOW_SIZE-CELL_WIDTH),
-           random.randint(0,WINDOW_SIZE-CELL_HEIGHT),
+           random.randint(0,trainingZoneLimit-CELL_WIDTH),
+           random.randint(0,trainingZoneLimit-CELL_HEIGHT),
             ) for i in xrange(TRAIN_CELLS)]
 
     def update(self):
@@ -163,7 +195,7 @@ class Lienzo(gtk.DrawingArea):
                     print self.currentCell
                     
                     newCell=Cell(WINDOW_SIZE - CELL_WIDTH*2,
-                        random.randint(0,TRAINING_ZONE_LIMIT-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
+                        random.randint(0,self.trainingZoneLimit-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
                     newCell.velX=-random.random()*2
                     newCell.type="NormalCell"
                     self.cells.append(newCell)
@@ -211,7 +243,8 @@ class Lienzo(gtk.DrawingArea):
                             virus.targetCell.status="BeingEaten"
                     if virus.targetCell.status=="Dead":
                         virus.targetCell=None
-
+            leftLimit=0
+            rightLimit=0
             for (cell,type) in self.trainingSet:
                 for i in xrange(len(self.classificationList)):
                     if type==self.classificationList[i]:
@@ -222,7 +255,7 @@ class Lienzo(gtk.DrawingArea):
                             leftLimit=self.divisionPoints[i-1]
                         break
                             
-                cell.update(self.currentState,[leftLimit,rightLimit-cell.width,TRAINING_ZONE_LIMIT,WINDOW_SIZE-cell.height])
+                cell.update(self.currentState,[leftLimit,rightLimit-cell.width,600,WINDOW_SIZE-cell.height])
 
     def paint(self, widget, event):
         """Nuestro metodo de pintado propio"""
@@ -240,7 +273,34 @@ class Lienzo(gtk.DrawingArea):
         cr.move_to(15,15)
         text="To next cell: %d" % (self.ticksToNextCell)
         cr.show_text(text)
+
+        cr.move_to(15,self.trainingZoneLimit)
+        cr.line_to(WINDOW_SIZE-15,self.trainingZoneLimit)
+        cr.set_line_width(0.6)
+        cr.stroke()
+
+        for x in xrange(3):
+            cr.save()
+            cr.move_to((WINDOW_SIZE/3)*x,self.trainingZoneLimit+15)
+            cr.line_to((WINDOW_SIZE/3)*x,WINDOW_SIZE-15)
+            cr.set_line_width(0.6)
+            cr.stroke()
+            cr.restore()
+
+        for i in xrange(len(self.classificationList)):
+            cr.set_source_rgba(1,1,1,0.7)
+            text=str(self.classificationList[i])
+            if i==0:
+                posXText=(self.divisionPoints[i])/2-(len(text)/2)*5
+            else:
+                posXText=(self.divisionPoints[i-1]+self.divisionPoints[i])/2-(len(text)/2)*5
+            cr.move_to(posXText,WINDOW_SIZE-100+15)
+            cr.show_text(text)
         cr.restore()
+
+        for (cell,type) in self.trainingSet:
+            cell.paint(cr)
+
         #pintar a los agentes
         if self.currentState=="Training":
             pass
@@ -261,7 +321,7 @@ class Lienzo(gtk.DrawingArea):
 
             cr.stroke()
 
-        #coso <- ¬¬
+        #coso <- ï¿½ï¿½
         if self.currentState == "Running":
             if self.virus[0].status == "Defending":
                 cr.set_line_width(2)
