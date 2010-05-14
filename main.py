@@ -125,6 +125,8 @@ class Lienzo(gtk.DrawingArea):
         for virus in self.virus:
             virus.analyze()
 
+    def print_r_table(self,widget):
+        self.qagent.q_table.print_table()
 
     def reset(self,extra=0):
         self.currentState="Training"
@@ -333,8 +335,8 @@ class Main(gtk.Window):
 #        annealMenu.connect("activate", self.lienzo.run_simulation)
 #        filemenu.append(annealMenu)
 
-        annealMenu = gtk.MenuItem("Test random cell")
-        annealMenu.connect("activate", self.lienzo.classify_cell)
+        annealMenu = gtk.MenuItem("Print q_table")
+        annealMenu.connect("activate", self.lienzo.print_r_table)
         filemenu.append(annealMenu)
 
         exit = gtk.MenuItem("Exit")

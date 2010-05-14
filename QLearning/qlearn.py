@@ -20,7 +20,7 @@ class Table():
 
     def print_table(self):
         print "--"*20
-        dict = action_dict
+        dict = self.actions_for_state
         for k in dict:
             for entry in dict[k]:
                 act = dict[k][entry]
