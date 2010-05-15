@@ -1,4 +1,10 @@
 import random
+states ={"A":"High","M":"Medium","B":"Low","X":"Dead"}
+actions = {"AR":"Atack Target","CR":"Eat Target","DR":"Defend from Target",
+                "AV":"Atack Enemy","CV":"Eat Enemy","DV":"Defend from Enemy",
+                "AA":"Atack Food","CA":"Eat Food","DA":"Defend from Food"
+               }
+
 class QAction():
     def __init__(self,action_name, source_node,
                  destination_node,  reinforcement = 0):
@@ -10,10 +16,9 @@ class QAction():
 class Table():
     def __init__(self, q_action_dict=None):
         if q_action_dict == None:
-            self.actions_for_state = self.read_from_file('rtable.csv')
+            self.actions_for_state = self.read_from_file('./resources/rtable.csv')
         else:
             self.actions_for_state= q_action_dict
-
 
     def __getitem__(self,key):
         return self.actions_for_state[key]
@@ -24,7 +29,7 @@ class Table():
         for k in dict:
             for entry in dict[k]:
                 act = dict[k][entry]
-                print act.name, act.source, act.destination, act.reinforcement
+                print "Current:", states[act.source], "| Action:", actions[act.name], "| Result:", states[act.destination], "| Reinforcement:", act.reinforcement
         print "--"*20
 
     def read_from_file(self, filename):
@@ -37,7 +42,7 @@ class Table():
             action_name= data[1]
             destination_state_name= data[2]
             reinforcement = int(data[3])
-            print "from %s to %s with reinforcement %d (%s)"%(source_state_name, destination_state_name, reinforcement, action_name)
+            #print "from %s to %s with reinforcement %d (%s)"%(source_state_name, destination_state_name, reinforcement, action_name)
 
             r_action = QAction(action_name, source_state_name,
                                destination_state_name, reinforcement)
@@ -49,13 +54,14 @@ class Table():
                                                      {action_name:r_action}
                                                      )
 
-        print "--"*20
-        dict = action_dict
-        for k in dict:
-            for entry in dict[k]:
-                act = dict[k][entry]
-                print act.name, act.source, act.destination, act.reinforcement
-        print "--"*20
+        #print "Initial reinforcements table:"
+        #print "--"*20
+        #dict = action_dict
+        #for k in dict:
+        #    for entry in dict[k]:
+        #        act = dict[k][entry]
+        #        print act.name, act.source, act.destination, act.reinforcement
+        #print "--"*20
         return Table(action_dict)
 
     def copy(self):
@@ -71,17 +77,7 @@ class QAgent():
         self.action_map = {"A":[self._get_attack_action, self._get_eat_action],
                            "M":[self._get_eat_action, self._get_defend_action],
                            "B":[self._get_eat_action, self._get_defend_action],
-                           "X":[]}
-
-
-#    def _create_q_table(self):
-#        q_table = self.r_table.copy() #hard copy (by value)
-#
-#        for state in q_table:
-#            action_entry_dict = q_table[state]
-#            for action_key in action_entry_dict:
-#                action_entry_dict[action_key].reinforcement = 0
-#        return Table(q_table)
+                           "X":[]}        
 
 
     def _create_q_table(self):
@@ -91,7 +87,7 @@ class QAgent():
             action_dict = r_table[state_key]
             for action_key in action_dict:
                 action = action_dict[action_key]
-                q_action = QAction(action.name, action.source, action.destination, action.reinforcement)
+                q_action = QAction(action.name, action.source, action.destination, 0)
                 if not dict.has_key(state_key):
                     dict[state_key]={}
                 dict[state_key].update({action_key:q_action})
@@ -127,16 +123,17 @@ class QAgent():
                   "(%s) selected") %(self.selection_policy)
             return None
 
-        print "Moved from %s to %s with action %s"%(self.current_state,action.destination, action.name)
+        print "Moved from %s to %s with action %s"%(states[self.current_state],states[action.destination], actions[action.name])
         self.current_state = action.destination
         return action
                         
 
     def _update_q_table(self, action, cell):
         node_state = action.source#self.current_state
+        prev = self.q_table[node_state][action.name].reinforcement
         self.q_table[node_state][action.name].reinforcement= self.r_table[node_state][action.name].reinforcement +(self.learning_rate * (self._get_max_action(cell).reinforcement))
         print "r_table reinforcement: %f" %(self.r_table[node_state][action.name].reinforcement)
-        print "Updated q_table[%s][%s] to %f" %(node_state,action.name,self.q_table[node_state][action.name].reinforcement)
+        print "Updated q_table[%s][%s] from %f to %f" %(states[node_state],actions[action.name],prev, self.q_table[node_state][action.name].reinforcement)
 
     def _update_selection_policy(self):
         actions_learned = 0
@@ -154,7 +151,7 @@ class QAgent():
             self.selection_policy="optimal"
         else:
             self.selection_policy="random"
-        print "Mark: %f, throw: %f -> %s (learned:%d,total:%d)"%(mark,throw,self.selection_policy, actions_learned, total_actions)
+        print "Current Selection Policy: %s (learned:%d,total:%d)"%(self.selection_policy, actions_learned, total_actions)
 
 
     def update(self, cell):
@@ -165,7 +162,7 @@ class QAgent():
                 self._update_selection_policy()
                 return action.name[0]
             else:
-                print "estado final A"
+                #print "estado final A"
                 self.restart()
                 return action.name[0]
                 
@@ -176,7 +173,7 @@ class QAgent():
 
     def restart(self):
         self.current_state="A"
-        print "Restarted... State= A"
+        print "Restarted... State= High"
 
 
     def _normalize_color(self, color_str):

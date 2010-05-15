@@ -11,8 +11,8 @@ M,DA,M,0
 B,CA,M,0
 B,DA,B,-50
 A,AV,M,0
-A,CV,B,0
-M,CV,B,0
+A,CV,B,-50
+M,CV,B,-50
 M,DV,A,50
 B,CV,X,-100
-B,DV,M,0
+B,DV,M,50

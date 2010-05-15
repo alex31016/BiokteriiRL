@@ -78,18 +78,19 @@ class Lienzo(gtk.DrawingArea):
         self.init_training_set()
 
     def read_file(self):
-        file = open("list.txt",'r')
+        file = open("./resources/list.txt",'r')
         self.apareciendo = []
         for linea in file.readlines():
             self.apareciendo.append(linea)
         file.close()
         self.numCells = len(self.apareciendo)
-        print self.numCells
-        return self.apareciendo
+        #print self.numCells
+        #return self.apareciendo
 
+    
 
     def init_training_set(self):
-        file = open("list.txt",'r')
+        file = open("./resources/list.txt",'r')
         for linea in file.readlines():
             newCell=Cell(0,0,0,0,"TrainCell", linea)
             newCell.width=20
@@ -158,7 +159,9 @@ class Lienzo(gtk.DrawingArea):
         for virus in self.virus:
             virus.analyze()
 
-    def print_r_table(self,widget):
+    def print_q_table(self,widget):
+        print ""
+        print "QTable:"
         self.qagent.q_table.print_table()
 
     def reset(self,extra=0):
@@ -194,7 +197,7 @@ class Lienzo(gtk.DrawingArea):
                     #print "NumCells", self.numCells
                     #print self.apareciendo
     #                print self.apareciendo[self.currentCell]
-                    print self.currentCell
+                    #print self.currentCell
                     
                     newCell=Cell(WINDOW_SIZE - CELL_WIDTH*2,
                         random.randint(0,self.trainingZoneLimit-CELL_HEIGHT), 0,0,"TrainCell", self.apareciendo[self.currentCell])
@@ -218,7 +221,7 @@ class Lienzo(gtk.DrawingArea):
                                 break
                         if virus.targetCell:
                             current_state = self.qagent.update(virus.targetCell)
-                            print "Current State", current_state
+                            print "Current Action: ",
                             if current_state == "A":
                                 virus.status="Attacking"
                             if current_state =="C":
@@ -228,6 +231,9 @@ class Lienzo(gtk.DrawingArea):
                                 virus.targetCell.status = "defended"
                             if current_state =="X":
                                 virus.isDead = True
+
+                            print virus.status
+                            print '-'*20
 
                             #virus.status="Defending"
                             #virus.targetCell.status = "defended"
@@ -396,7 +402,7 @@ class Main(gtk.Window):
 #        filemenu.append(annealMenu)
 
         annealMenu = gtk.MenuItem("Print q_table")
-        annealMenu.connect("activate", self.lienzo.print_r_table)
+        annealMenu.connect("activate", self.lienzo.print_q_table)
         filemenu.append(annealMenu)
 
         exit = gtk.MenuItem("Exit")
